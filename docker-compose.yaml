@@ -1,0 +1,147 @@
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  whatsapp_webhook_service:
+    build:
+      context: .
+      dockerfile: services/whatsapp_webhook_service/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=${RDS_HOST}
+      - POSTGRES_PORT=${RDS_PORT}
+      - POSTGRES_DB=${RDS_DATABASE}
+      - POSTGRES_USER=${RDS_USER}
+      - POSTGRES_PASSWORD=${RDS_PASSWORD}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app_network
+
+  invoice_extraction_service:
+    build:
+      context: .
+      dockerfile: services/invoice_extraction_service/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8001:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=${RDS_HOST}
+      - POSTGRES_PORT=${RDS_PORT}
+      - POSTGRES_DB=${RDS_DATABASE}
+      - POSTGRES_USER=${RDS_USER}
+      - POSTGRES_PASSWORD=${RDS_PASSWORD}
+      - GPT_API_KEY=${GPT_API_KEY}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+    depends_on:
+      - whatsapp_webhook_service
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  query_generator_service:
+    build:
+      context: .
+      dockerfile: services/query_generator_service/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8002:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=${RDS_HOST}
+      - POSTGRES_PORT=${RDS_PORT}
+      - POSTGRES_DB=${RDS_DATABASE}
+      - POSTGRES_USER=${RDS_USER}
+      - POSTGRES_PASSWORD=${RDS_PASSWORD}
+      - GPT_API_KEY=${GPT_API_KEY}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+    depends_on:
+      - whatsapp_webhook_service
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - app_network
+
+  client_response_service:
+    build:
+      context: .
+      dockerfile: services/client_response_service/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8003:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+    depends_on:
+      - whatsapp_webhook_service
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

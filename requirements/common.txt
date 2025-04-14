@@ -1,0 +1,15 @@
+aio-pika==9.5.4
+httpx==0.27.0
+FastAPI==0.112.2
+uvicorn==0.27.1
+openai==1.12.0
+boto3==1.34.34
+pandas==2.2.3
+python-dotenv==1.0.1
+twilio==9.0.0
+python-multipart==0.0.20
+redis==5.2.1
+openpyxl==3.1.5
+backoff==2.2.1
+asyncpg==0.30.0
+python-dateutil==2.9.0.post0
