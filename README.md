@@ -167,7 +167,7 @@ This guide assumes basic familiarity with the AWS console.
     - Ensure this security group is allowed inbound access to the RDS security group on port 5432.
 - Connect to your EC2 instance using SSH.
 - **Install Docker and Docker Compose**:
-  ```bash
+```bash
 ### 1. Update package index
 sudo apt-get update -y
 
