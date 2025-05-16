@@ -2,6 +2,23 @@
 
 A microservices-based system that processes invoice images and natural language queries through WhatsApp using Twilio, Kafka, OpenAI GPT, AWS S3, and AWS RDS PostgreSQL. The system parses invoice data from images and converts natural language queries into SQL database queries for data retrieval and analysis.
 
+---
+
+## Table of Contents
+- [System Architecture](#system-architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [4.1 Test Locally with Twilio Sandbox](#41-test-locally-with-twilio-sandbox)
+- [AWS Setup Guide](#aws-setup-guide)
+  - [1. S3 Bucket Creation](#1-s3-bucket-creation)
+  - [2. RDS PostgreSQL Instance Setup](#2-rds-postgresql-instance-setup)
+  - [3. EC2 Instance Setup](#3-ec2-instance-setup)
+- [Database Schema](#database-schema)
+- [System Integration Flow](#system-integration-flow)
+- [Project Structure](#project-structure)
+
+---
+
 ## System Architecture
 
 The system runs on Docker containers (deployable to AWS EC2) hosting four key microservices:
@@ -18,6 +35,8 @@ Supporting Infrastructure:
 
 ![System Architecture](docs/system_architecture.png)
 
+---
+
 ## Prerequisites
 
 - Docker and Docker Compose
@@ -29,65 +48,74 @@ Supporting Infrastructure:
 - OpenAI API key
 - Python 3.9+ (for local development)
 
+---
+
 ## Quick Start
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/DM-Dev-Codes/whatsapp-invoice-processor.git
-    cd whatsapp-invoice-processor
-    ```
+### 1. Clone the repository
 
-2.  **Set up environment variables**
-    Create a `.env` file in the root directory. **Do not commit this file.** Use the following template:
-    ```env
-    # AWS Credentials & Configuration
-    AWS_ACCESS_KEY_ID=your_access_key
-    AWS_SECRET_ACCESS_KEY=your_secret_key
-    AWS_REGION=your_aws_region # e.g., us-east-1
-    S3_BUCKET_NAME=your_unique_s3_bucket_name
+```bash
+git clone https://github.com/DM-Dev-Codes/whatsapp-invoice-processor.git
+cd whatsapp-invoice-processor
+```
 
-    # RDS PostgreSQL Configuration
-    RDS_HOST=your_rds_endpoint
-    RDS_PORT=5432
-    RDS_DATABASE=fintrak # Database name
-    RDS_USER=your_rds_username
-    RDS_PASSWORD=your_rds_password
+### 2. Set up environment variables
 
-    # Twilio Configuration
-    TWILIO_ACCOUNT_SID=your_account_sid
-    TWILIO_AUTH_TOKEN=your_auth_token
-    TWILIO_PHONE_NUMBER=your_twilio_whatsapp_number # e.g., +14155238886
+Create a `.env` file in the root directory. **Do not commit this file.** Use the following template:
 
-    # OpenAI Configuration
-    GPT_API_KEY=your_openai_api_key
+```env
+# AWS Credentials & Configuration
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=your_aws_region # e.g., us-east-1
+S3_BUCKET_NAME=your_unique_s3_bucket_name
 
-    # Redis Configuration (Defaults for docker-compose)
-    REDIS_HOST=redis
-    REDIS_PORT=6379
+# RDS PostgreSQL Configuration
+RDS_HOST=your_rds_endpoint
+RDS_PORT=5432
+RDS_DATABASE=fintrak # Database name
+RDS_USER=your_rds_username
+RDS_PASSWORD=your_rds_password
 
-    # Kafka Configuration (Defaults for docker-compose)
-    KAFKA_HOST=kafka
-    KAFKA_PORT=9092
-    ```
+# Twilio Configuration
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_whatsapp_number # e.g., +14155238886
 
-3.  **Build and Start the services**
-    ```bash
-    # First build the base image that all services depend on
-    docker build -t base -f Dockerfile.base .
-    
-    # Then build and run all services
-    docker-compose up --build -d # Build images and run in detached mode
-    ```
+# OpenAI Configuration
+GPT_API_KEY=your_openai_api_key
 
-4.  **Configure Twilio Webhook**
-    - In your Twilio console, navigate to the settings for your WhatsApp sender.
-    - Set the webhook URL for incoming messages to point to your deployed Webhook Service:
-      `http://<your-ec2-public-ip-or-dns>:8000/whatsapp`
-      (Ensure port 8000 is open in your EC2 Security Group).
+# Redis Configuration (Defaults for docker-compose)
+REDIS_HOST=redis
+REDIS_PORT=6379
 
-### 4.1 Test Locally with Twilio Sandbox
+# Kafka Configuration (Defaults for docker-compose)
+KAFKA_HOST=kafka
+KAFKA_PORT=9092
+```
 
-#### Twilio Account Setup
+### 3. Build and Start the services
+
+```bash
+# First build the base image that all services depend on
+docker build -t base -f Dockerfile.base .
+
+# Then build and run all services
+docker-compose up --build -d # Build images and run in detached mode
+```
+
+### 4. Configure Twilio Webhook
+
+- In your Twilio console, navigate to the settings for your WhatsApp sender.
+- Set the webhook URL for incoming messages to point to your deployed Webhook Service:
+  `http://<your-ec2-public-ip-or-dns>:8000/whatsapp`
+  (Ensure port 8000 is open in your EC2 Security Group).
+
+---
+
+## 4.1 Test Locally with Twilio Sandbox
+
+### Twilio Account Setup
 
 If you don’t already have a Twilio account:
 
@@ -96,7 +124,7 @@ If you don’t already have a Twilio account:
 3. Navigate to the [WhatsApp Sandbox](https://www.twilio.com/console/sms/whatsapp/sandbox).  
 4. Note your Twilio Sandbox number and unique join code (e.g., `join example-word`).
 
-#### Connect and Test
+### Connect and Test
 
 1. Open WhatsApp on your mobile device.  
 2. Send the join code to the Twilio sandbox number.  
@@ -107,6 +135,7 @@ If you don’t already have a Twilio account:
    - Upload and process an invoice image  
    - Submit a natural language financial query  
 
+---
 
 ## AWS Setup Guide
 
@@ -117,24 +146,26 @@ This guide assumes basic familiarity with the AWS console.
 - Go to the S3 service in the AWS console.
 - Create a new bucket. Choose a globally unique name and the desired region.
 - Configure permissions:
-    - Enable public access to allow anyone to download files. 
+    - Enable public access **only if required**, to allow external systems to retrieve files. Use with caution.
     - Attach the "AmazonS3FullAccess" policy to your user.
     - Example policy snippet:
-      ```json
-      {
-          "Version": "2012-10-17",
-          "Statement": [
-              {
-                  "Effect": "Allow",
-                  "Principal": "*",
-                  "Action": [
-                      "s3:GetObject"
-                  ],
-                  "Resource": "arn:aws:s3:::your_unique_s3_bucket_name/*"
-              }
-          ]
-      }
-      ```
+
+    ```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": [
+                    "s3:GetObject"
+                ],
+                "Resource": "arn:aws:s3:::your_unique_s3_bucket_name/*"
+            }
+        ]
+    }
+    ```
+
 - Note the `S3_BUCKET_NAME` and `AWS_REGION` for your `.env` file.
 
 ### 2. RDS PostgreSQL Instance Setup
@@ -150,7 +181,7 @@ This guide assumes basic familiarity with the AWS console.
 - Configure Instance configuration, Storage, and Availability & durability as needed.
 - **Connectivity**:
     - Choose the VPC where your EC2 instances will run.
-    - **Crucially, configure the VPC security group**: Create a new one or use an existing one. This security group **must allow inbound TCP traffic on port 5432** from the security group associated with your EC2 instances (or your specific EC2 instance IPs). Restrict access as much as possible.
+    - **Important**: Configure the VPC security group to allow inbound TCP traffic on port 5432 from the EC2 instance or its security group.
     - Set Public Access to "No" unless you have a specific reason and understand the security implications.
 - **Database options**:
     - Set the **Initial database name** to `fintrak`.
@@ -163,10 +194,10 @@ This guide assumes basic familiarity with the AWS console.
 - **Configure Security Group**:
     - Allow SSH (Port 22) from your IP address for management.
     - Allow Custom TCP (Port 8000) from Twilio's IP ranges (or `0.0.0.0/0` for testing, **not recommended for production**) for the WhatsApp webhook.
-    - Allow outbound traffic as needed (usually default allows all).
     - Ensure this security group is allowed inbound access to the RDS security group on port 5432.
 - Connect to your EC2 instance using SSH.
 - **Install Docker and Docker Compose**:
+
 ```bash
 ### 1. Update package index
 sudo apt-get update -y
@@ -206,9 +237,11 @@ sudo apt-get install -y docker-compose-plugins
 ### ✅ Check installations
 docker --version       # should return Docker version X.X.X
 docker compose version # should return Docker Compose version v2.X.X
-
 ```
+
 - Clone the repository onto the EC2 instance, create the `.env` file, and run `docker-compose up`.
+
+---
 
 ## Database Schema
 
@@ -217,22 +250,24 @@ The system uses a PostgreSQL database named `fintrak` with tables including:
 - **Invoices**: Contains extracted invoice data (`invoice_id`, `whatsapp_number`, `invoice_date`, `expense_amount`, `vat`, `payee_name`, `payment_method`, `raw_image_url`, `created_at`).
 - **Queries**: Tracks user financial analysis queries and results (`query_id`, `whatsapp_number`, `query_text`, `query_result`, `created_at`).
 
+---
 
 ## System Integration Flow
 
 The end-to-end flow involves multiple systems:
-1.  User sends a message via WhatsApp.
-2.  Twilio receives the message and forwards it to the configured webhook URL.
-3.  The **Webhook Service** presents a menu to users with two options:
+1. User sends a message via WhatsApp.
+2. Twilio receives the message and forwards it to the configured webhook URL.
+3. The **Webhook Service** presents a menu to users with two options:
     - Option 1: Process invoice image
     - Option 2: Submit natural language query
-4.  Based on the user's selection, the Webhook Service publishes the subsequent message to the appropriate Kafka topic:
+4. Based on the user's selection, the Webhook Service publishes the subsequent message to the appropriate Kafka topic:
     - Image processing requests → IMAGE_TOPIC
     - Natural language queries → QUERY_TOPIC
-5.  The appropriate service (**Invoice Extractor** or **Query Generator**) consumes the message from its topic.
-6.  Services interact with **OpenAI GPT** for analysis, **S3** for storage, and **RDS** for data persistence.
-7.  The **Client Response Service** formats the result and sends it back to the user via the Twilio API.
+5. The appropriate service (**Invoice Extractor** or **Query Generator**) consumes the message from its topic.
+6. Services interact with **OpenAI GPT** for analysis, **S3** for storage, and **RDS** for data persistence.
+7. The **Client Response Service** formats the result and sends it back to the user via the Twilio API.
 
+---
 
 ## Project Structure
 
