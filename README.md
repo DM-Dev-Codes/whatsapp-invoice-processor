@@ -168,42 +168,42 @@ This guide assumes basic familiarity with the AWS console.
 - Connect to your EC2 instance using SSH.
 - **Install Docker and Docker Compose**:
   ```bash
-# 1. Update package index
+### 1. Update package index
 sudo apt-get update -y
 
-# 2. Install prerequisites
+### 2. Install prerequisites
 sudo apt-get install -y \
     ca-certificates \
     curl \
     gnupg \
     lsb-release
 
-# 3. Add Docker’s official GPG key
+### 3. Add Docker’s official GPG key
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
     | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-# 4. Set up the stable Docker repository
+### 4. Set up the stable Docker repository
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
   https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" \
   | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# 5. Install Docker Engine
+### 5. Install Docker Engine
 sudo apt-get update -y
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-# 6. Add current user to Docker group to avoid using 'sudo' with docker
+### 6. Add current user to Docker group to avoid using 'sudo' with docker
 sudo usermod -aG docker $USER
 
-# 7. Activate the group changes (start a new shell or run below)
+### 7. Activate the group changes (start a new shell or run below)
 newgrp docker
 
-# 8. Install Docker Compose v2 (plugin-based)
+### 8. Install Docker Compose v2 (plugin-based)
 sudo apt-get install -y docker-compose-plugins
 
-# ✅ Check installations
+### ✅ Check installations
 docker --version       # should return Docker version X.X.X
 docker compose version # should return Docker Compose version v2.X.X
 
