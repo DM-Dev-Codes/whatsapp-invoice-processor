@@ -129,11 +129,11 @@ class DatabaseManager:
         }
         invoice_data = {
             'phone_number': parsed_data['phone_number'],
-            'invoice_date': parse(parsed_data['invoice_date']).date(),
-            'expense_amount': parsed_data['expense_amount'],
-            'vat': parsed_data['vat'],
-            'payee_name': parsed_data['payee_name'],
-            'payment_method': parsed_data['payment_method'],  
+            'invoice_date': parse(parsed_data.get('invoice_date')).date() if parsed_data.get('invoice_date') else None,
+            'expense_amount': parsed_data['expense_amount'] or None,
+            'vat': parsed_data['vat'] or None,
+            'payee_name': parsed_data['payee_name'] or None,
+            'payment_method': parsed_data['payment_method'] or None,
             'raw_image_url': parsed_data['raw_image_url']
         }
         try:

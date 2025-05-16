@@ -1,5 +1,5 @@
-from rabbitmq import RabbitMQHandler
-from safe_naming import QueueNames
+from shared.kafka_manager import KafkaHandler
+from safe_naming import TopicNames
 import asyncio
 
 
@@ -7,7 +7,7 @@ import asyncio
 
 async def main():
     # Initialize the connection with all queue names (values)
-    await RabbitMQHandler()._initializeConnection(list(QueueNames))
+    await KafkaHandler()._initializeConnection(list(TopicNames))
 
         
      

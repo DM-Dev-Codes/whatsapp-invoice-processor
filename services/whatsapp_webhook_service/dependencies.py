@@ -1,6 +1,6 @@
 from fastapi import Request
 from shared.redis_manager import SessionStateManager
-from shared.rabbitmq import RabbitMQHandler
+from shared.kafka_manager import KafkaHandler
 
 
 async def getSessionManager(request: Request) -> SessionStateManager:
@@ -18,18 +18,18 @@ async def getSessionManager(request: Request) -> SessionStateManager:
     """
     return request.app.state.session_manager
 
-async def getRabbitmq(request: Request) -> RabbitMQHandler:
+async def getKafka(request: Request) -> KafkaHandler:
     """
-    Dependency that provides access to the RabbitMQ handler.
+    Dependency that provides access to the Kafka handler.
     
-    The RabbitMQ handler is used to send messages to processing queues
+    The Kafka handler is used to publish messages to processing topics
     for invoice image analysis and text query handling.
     
     Args:
         request (Request): The FastAPI request object containing application state
         
     Returns:
-        RabbitMQHandler: The initialized RabbitMQ handler instance
+        KafkaHandler: The initialized Kafka handler instance
     """
-    return request.app.state.rabbitmq
+    return request.app.state.kafka_handler
 

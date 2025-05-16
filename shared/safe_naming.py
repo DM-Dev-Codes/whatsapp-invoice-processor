@@ -1,18 +1,18 @@
 from enum import Enum
 
 
-class QueueNames(Enum):
+class TopicNames(Enum):
     """
-    Represents the names of the queues in the RabbitMQ system.
+    Represents the names of the topics in the Kafka system.
 
-    This enum defines the names of the queues used in the application,
-    including the host address, image queue, query queue, response queue,
-    and error queue.
+    This enum defines the names of the topics used in the application,
+    including the broker host address, image topic, query topic, response topic,
+    and error topic.
     """
-    RABBITMQ_HOST = 'rabbitmq'
-    IMAGE_QUEUE = 'message_queue'
-    QUERY_QUEUE = 'query_queue'
-    RESPONSE_QUEUE = 'response_queue'
+    KAFKA_HOST = 'kafka'
+    IMAGE_TOPIC = 'message_topic'
+    QUERY_TOPIC = 'query_topic'
+    RESPONSE_TOPIC = 'response_topic'
     
 
 class ValidInput(Enum):

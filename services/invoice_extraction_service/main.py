@@ -3,7 +3,7 @@ Invoice Extraction Microservice
 
 This microservice processes invoice images submitted by users through the WhatsApp
 webhook service. It performs the following functions:
-1. Consumes messages from the RabbitMQ image queue
+1. Consumes messages from the Kafka image topic
 2. Validates and processes invoice images
 3. Uses GPT to extract data from valid invoices
 4. Stores processed invoice data in PostgreSQL
@@ -14,7 +14,7 @@ architecture for invoice processing and data extraction.
 """
 
 import asyncio
-from shared.rabbitmq import RabbitMQHandler
+from shared.kafka_manager import KafkaHandler
 from parse_app import ImageProcessor
 from shared.s3_connection import S3Handler
 from shared.postgres import DatabaseManager
@@ -41,14 +41,14 @@ async def main() -> None:
     database_manager = DatabaseManager()
     await database_manager.connect()
     # Initialize other service components
-    rabbit_handler = RabbitMQHandler()
+    kafka_handler = KafkaHandler()
     aws_s3_client = S3Handler()
     gpt_client = GptApiHandler()
     redis_manager = SessionStateManager()
     
     # Create and run the image processing service
     parsing_img_service = ImageProcessor(
-        aws_s3_client, rabbit_handler, database_manager, gpt_client, redis_manager
+        aws_s3_client, kafka_handler, database_manager, gpt_client, redis_manager
     )
     await parsing_img_service.runService()
 

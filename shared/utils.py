@@ -102,15 +102,13 @@ def getMenuOptions(include_header=True):
     header = "*What would you like to do next?*\n\n" if include_header else ""
 
     options = [
-        {"title": "Upload & Process Invoice Image", "desc": "Upload an invoice image for analysis"},
-        {"title": "Retrieve Invoice Information", "desc": "Query your stored invoice data"},
+        {"key": "0", "title": "Exit Assistant", "desc": "Type 0 anytime to end the session and reset"},
+        {"key": "1", "title": "Upload & Process Invoice Image", "desc": "Upload an invoice image for analysis"},
+        {"key": "2", "title": "Retrieve Invoice Information", "desc": "Query your stored invoice data"},
     ]
 
     menu_lines = ["*Choose an option:*\n"]
-    for index, option in enumerate(options, 1):
-        menu_lines.append(f"*{index}.* {option['title']}\n  _{option['desc']}_\n")
+    for option in options:
+        menu_lines.append(f"*{option['key']}.* {option['title']}\n  _{option['desc']}_\n")
 
     return header + "\n".join(menu_lines)
-
-        
-        

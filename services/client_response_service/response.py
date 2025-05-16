@@ -5,7 +5,7 @@ import backoff
 from dotenv import load_dotenv
 from twilio.base.exceptions import TwilioRestException, TwilioException
 from twilio.rest import Client
-from shared.safe_naming import QueueNames, UserState
+from shared.safe_naming import TopicNames, UserState
 
 
 
@@ -16,25 +16,25 @@ class ResponseService:
     """
     Handles delivery of WhatsApp messages to users via Twilio.
     
-    This class manages the receipt of messages from the response queue,
+    This class manages the receipt of messages from the response topic,
     delivery of those messages via the Twilio API, and handling of any
     errors or retries that occur during message delivery.
     
     Attributes:
-        rabbit_handler: Handler for RabbitMQ message queue operations
+        kafka_handler: Handler for Kafka messaging operations
         redis_manager: Client for managing user session states
         twilio_client: Client for Twilio API interactions
     """
 
-    def __init__(self, rabbit_handler, redis_manager):
+    def __init__(self, kafka_handler, redis_manager):
         """
         Initialize the ResponseService with necessary clients and handlers.
         
         Args:
-            rabbit_handler: Handler for RabbitMQ operations
+            kafka_handler: Handler for Kafka operations
             redis_manager: Client for managing user session states
         """
-        self.rabbit_handler = rabbit_handler
+        self.kafka_handler = kafka_handler
         self.redis_manager = redis_manager
         self.twilio_client = None
         
@@ -70,10 +70,10 @@ class ResponseService:
         
     async def runService(self):
         """
-        Initialize connections and start consuming messages from the queue.
+        Initialize connections and start consuming messages from the topic.
         
-        This method sets up the Twilio client, RabbitMQ connection, and Redis
-        connection, then starts listening for messages on the response queue.
+        This method sets up the Twilio client, Kafka connection, and Redis
+        connection, then starts listening for messages on the response topic.
         It runs in an infinite loop to maintain the service.
         
         Returns:
@@ -85,12 +85,12 @@ class ResponseService:
         except Exception as e:
             logger.error(f"Initial Twilio setup failed: {e}")
             logger.info("Will retry when sending messages")
-        logger.info("Initializing RabbitMQ connection...")
-        await self.rabbit_handler._initializeConnection([QueueNames.RESPONSE_QUEUE.value])
+        logger.info("Initializing Kafka connection...")
+        await self.kafka_handler._initializeConnection([TopicNames.RESPONSE_TOPIC.value])
         logger.info("Initializing Redis connection...")
         await self.redis_manager.initializeConnections()
         logger.info("Connection initialized, starting consumer...")
-        await self.rabbit_handler.consumeFromQueue(QueueNames.RESPONSE_QUEUE.value, self.validateSentMessage)
+        await self.kafka_handler.consumeFromTopic(TopicNames.RESPONSE_TOPIC.value, self.validateSentMessage)
         logger.info("Consumer started, entering main loop...")
         while True:
             await asyncio.sleep(1)
@@ -136,10 +136,10 @@ class ResponseService:
 
     async def validateSentMessage(self, dequed_msg):
         """
-        Process a message from the queue and attempt to send it.
+        Process a message from the topic and attempt to send it.
         
-        This method is called for each message dequeued from the response
-        queue. It attempts to send the message, updates the user state on
+        This method is called for each message received from the response
+        topic. It attempts to send the message, updates the user state on
         success, and handles failures.
         
         Args:
@@ -193,12 +193,3 @@ class ResponseService:
                 logger.info(f"Reset state to START for user {whatsapp_number} after message failure")
         except Exception as state_error:
             logger.error(f"Failed to reset user state: {state_error}")
-
-
-
-
-
-
-
-            
-        

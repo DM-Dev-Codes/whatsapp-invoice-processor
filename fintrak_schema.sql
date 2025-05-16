@@ -27,10 +27,10 @@ SET default_table_access_method = heap;
 CREATE TABLE public.invoices (
     invoice_id integer NOT NULL,
     whatsapp_number character varying,
-    invoice_date date NOT NULL,
-    expense_amount numeric(10,2) NOT NULL,
+    invoice_date date,
+    expense_amount numeric(10,2),
     vat numeric(10,2),
-    payee_name character varying(255) NOT NULL,
+    payee_name character varying(255),
     payment_method character varying(50),
     raw_image_url text,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP

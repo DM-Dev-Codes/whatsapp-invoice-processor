@@ -8,7 +8,7 @@ The service:
 1. Receives incoming messages from WhatsApp (via Twilio's API)
 2. Maintains user session state using Redis
 3. Processes user requests for invoice image analysis or text-based information retrieval
-4. Forwards requests to appropriate processing services via RabbitMQ queues
+4. Forwards requests to appropriate processing services via Kafka topics
 5. Provides immediate feedback to users and manages conversation flow
 
 This module initializes and configures the FastAPI application with the required
@@ -24,7 +24,6 @@ from shared.utils import setupAsyncLogging
 
 
 listener = setupAsyncLogging(__name__)
-
 logger = logging.getLogger(__name__)
 
 
@@ -43,10 +42,10 @@ def createApp() -> FastAPI:
     try:
         app = FastAPI(lifespan=lifespan)
         app.include_router(router)
-        logging.info("FastAPI app created successfully.")
+        logger.info("FastAPI app created successfully.")
         return app
     except Exception as e:
-        logging.error(f"Error during app creation: {e}")
+        logger.error(f"Error during app creation: {e}")
         raise
 
 def main():

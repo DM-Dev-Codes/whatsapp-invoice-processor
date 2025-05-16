@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy and install shared dependencies
 COPY requirements/common.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Default command (can be overridden by services)
 CMD ["python", "main.py"]
